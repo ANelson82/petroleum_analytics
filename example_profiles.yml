@@ -1,0 +1,11 @@
+dbt_petroleum_analytics:
+  outputs:
+    prod:
+      extensions:
+      - httpfs
+      - parquet
+      path: dbt_petroleum.duckdb
+      type: duckdb
+      path: prod.duckdb
+      threads: 4
+  target: prod
