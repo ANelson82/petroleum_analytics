@@ -4,5 +4,7 @@ select {{ dbt_utils.generate_surrogate_key(['api10', 'direction', 'wellname', 'w
      , cum12moil
      , cum12mgas
      , cum12mwater
+     , 'novi_csv' as record_source
+     , load_ts
 from {{ ref('raw_data') }}
 qualify row_number() over (partition by well_keyhash order by load_ts) = 1
