@@ -3,8 +3,8 @@ select {{ dbt_utils.generate_surrogate_key(['api10', 'direction', 'wellname', 'w
      , direction
      , wellname
      , welltype
-     , spuddate
-     , 'novi_csv' as record_source
+     , try_cast(spuddate as date) as spuddate
+     , 'novi_raw_data' as record_source
      , load_ts
-from {{ ref('raw_data') }}
+from {{ ref('raw_novi_data') }}
 qualify row_number() over (partition by well_keyhash order by load_ts) = 1

@@ -5,8 +5,6 @@ name = "pypi"
 
 [packages]
 dbt-duckdb = "*"
-jupysql = "*"
-duckdb-engine = "*"
 
 [dev-packages]
 ipykernel = "*"

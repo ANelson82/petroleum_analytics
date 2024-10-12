@@ -1,3 +1,9 @@
+
+{{ config(
+    materialized="view"
+) }}
+
+
 with fct_production_12mo_cums as (
     select * from {{ ref('fct_production_12mo_cums') }} 
 )
@@ -35,3 +41,4 @@ left join dim_operators o
   on p.operator_keyhash = o.operator_keyhash
 left join dim_locations l 
   on p.location_keyhash = l.location_keyhash
+order by 1

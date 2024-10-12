@@ -1,0 +1,15 @@
+select api10,
+       direction_cleansed,
+       wellname,
+       welltype_cleansed,
+       spuddate_cleansed,
+       operator_name_cleansed,
+       basin_cleansed,
+       subbasin_cleansed,
+       state_cleansed,
+       county_cleansed,
+       cum12moil_cleansed,
+       cum12mgas_cleansed,
+       cum12mwater_cleansed,
+       production_load_ts
+from {{ ref('production_12mo_cums_metricstore')}}
