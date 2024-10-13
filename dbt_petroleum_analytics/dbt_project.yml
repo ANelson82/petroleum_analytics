@@ -87,4 +87,5 @@ models:
       
 snapshots:
   dbt_petroleum_analytics:
-    +target_schema: SNAPSHOTS
+    +target_schema: snapshots
+    

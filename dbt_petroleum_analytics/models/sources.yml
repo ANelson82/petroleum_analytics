@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: external_source
+    meta:
+      external_location: "s3://petroleum-data/input/{name}"
+    tables:
+      - name: source1
+    config:
+          external_location: "read_csv('s3://petroleum-data/input/*.csv')"

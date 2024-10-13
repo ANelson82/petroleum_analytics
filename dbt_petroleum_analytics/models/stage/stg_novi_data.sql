@@ -12,8 +12,7 @@ select api10,
        cum12moil,
        cum12mgas,
        cum12mwater,
-       load_ts
-from {{ ref('raw_novi_data')}} )
+from {{ ref('raw_data')}} )
 
 , hashed as (
     select
