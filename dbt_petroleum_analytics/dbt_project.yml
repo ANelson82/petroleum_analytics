@@ -32,6 +32,7 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   dbt_petroleum_analytics:
     +materialized: table
+    +tags: project
     raw:
       +schema: raw
       +materialized: table
@@ -43,6 +44,16 @@ models:
       +tags: stage
       +docs:
         node_color: "#6495ED"
+    star:
+      +schema: star
+      +tags: star
+      +docs:
+        node_color: ORANGE
+    denormalized:
+      +schema: denormalized
+      +tags: denormalized
+      +docs:
+        node_color: red
     preprocessing_rules:
       +schema: preprocessing_rules
       +materialized: table
@@ -60,13 +71,13 @@ models:
       +materialized: table
       +tags: modeled
       +docs:
-        node_color: "#FFB6C1"
+        node_color: black
     datamarts:
       +schema: datamarts
       +materialized: table
       +tags: datamarts
       +docs:
-        node_color: "#FFD700"
+        node_color: PINK
     reports:
       +schema: reports
       +materialized: table
@@ -74,3 +85,6 @@ models:
       +docs:
         node_color: PURPLE
       
+snapshots:
+  dbt_petroleum_analytics:
+    +target_schema: SNAPSHOTS
