@@ -5,6 +5,6 @@ select {{ dbt_utils.generate_surrogate_key(['api10', 'direction', 'wellname', 'w
      , try_cast(cum12mgas as double) as cum12mgas
      , try_cast(cum12mwater as double) as cum12mwater
      , 'novi_raw_data' as record_source
-     , load_ts
+     , load_ts_utc
 from {{ ref('snsh_novi_data') }}
-qualify row_number() over (partition by well_keyhash order by load_ts) = 1
+qualify row_number() over (partition by well_keyhash order by load_ts_utc) = 1

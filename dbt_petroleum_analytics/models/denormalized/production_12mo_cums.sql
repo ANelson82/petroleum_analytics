@@ -33,7 +33,7 @@ select w.api10
      , p.cum12moil
      , p.cum12mgas
      , p.cum12mwater
-     , p.load_ts as production_load_ts
+     , p.load_ts_utc as production_load_ts
 from fct_production_12mo_cums p 
 left join dim_wells w
   on p.well_keyhash = w.well_keyhash

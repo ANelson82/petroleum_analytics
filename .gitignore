@@ -1,4 +1,5 @@
 dbt_petroleum_analytics/output_parquet/*
+dbt_petroleum_analytics/prod.duckdb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
