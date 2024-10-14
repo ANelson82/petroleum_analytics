@@ -1,0 +1,3 @@
+api10,direction,wellname,welltype,operator,basin,subbasin,state,county,spuddate,cum12moil,cum12mgas,cum12mwater
+,Vertical,STEPHENS 1,Oil,S.B. Street Operating,Barnett,Barnett,Texas,Young,2023-03-07,21,1374,41189
+,Vertical,T-C OIL CO.-OCONNOR 120,Oil,TC Oil,Other,Other,Texas,Refugio,2023-06-11,13961,1563,12322
