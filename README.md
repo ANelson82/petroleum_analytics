@@ -1,7 +1,7 @@
 # Business Problem:
 Given a sample dataset of oil & gas data, automate a process that does the following:
 - Ingest csv sample data from s3 bucket
-- Omits erroneus records (create a dead_letter_queue of erroneus records)
+- Omits erroneous records (create a dead_letter_queue of erroneous records)
 - Cleans data based on a number of hard rules and business rules
 - Exports final data, along with analysis results in a different directory of the same bucket
 
@@ -26,7 +26,7 @@ Given a sample dataset of oil & gas data, automate a process that does the follo
 
 <img src="resources/hybrid_data_model.png" width="700" />
 
-Source: [Kahan Data Solutions](https://www.youtube.com/watch?v=IdCmMkQLvGA) 
+Source: [Kahan Data Solutions](https://youtu.be/IdCmMkQLvGA?t=500) 
 
 # Architecture
 Hybrid Model Architecture:
@@ -152,17 +152,17 @@ qualify row_number() over (partition by operator_keyhash order by load_ts_utc) =
 
 # Hard Rules vs Business Rules
 
-Rules seperated into two segments:
+Rules separated into two segments:
 - Hard Rules (Pre Processing Rules)
     - Activate the data (by fixing data type issues)
-- Soft Rules/Business Rules (Post Processing Rules)
+- Business Rules (Post Processing Rules)
     - Transform the data based on downstream use cases
 
-Rules need to be modular and version controlled!  Customers will likely question methods.
+Rules need to be modular and version controlled!  Customers/analysts will likely question methods.
 
 # Preprocessing Rules
 
-Example of preprocessing rule, catching bad data that can be used to create filters or highlight erronus data.
+Example of preprocessing rule, catching bad data that can be used to create filters or highlight erroneous data.
 
 ```sql
 select basin as basin_bad_values
@@ -253,12 +253,7 @@ with dim_locations as (
     select * from {{ ref('rules_spuddate_avg')}}
 )
 
---records with nulls:
--- welltype
--- operator_name
--- cum12mgas
--- cum12mwater
-
+--join dims to facts
 
 , base_data as (
     select w.api10
@@ -284,6 +279,7 @@ left join dim_locations l
   on p.location_keyhash = l.location_keyhash
 )
 
+--join denormalized data with rules to show before vs after columns
 
 select api10
      , direction
@@ -335,19 +331,53 @@ group by basin_cleansed
 order by 2 desc, 3 desc, 4 desc
 ```
 
-# bash commands:
+```sql
+{{ config(
+  post_hook = "copy {{this}} to 's3://petroleum-data/output/top_5_wells.csv'"
+) }}
+
+--The top 5 oil wells by cum12moil, sorted in descending order
+
+select api10
+     , operator_name_cleansed as operator_name
+     , wellname
+     , state_cleansed as state
+     , county_cleansed as county
+     , cum12moil_cleansed
+from {{ ref('production_12mo_cums_cleansed')}}
+order by cum12moil_cleansed desc
+limit 5
+```
+
+# Docker
+The application was dockerized. The image was built and ran localy.
+
+```docker
+FROM python:3.10-slim-buster
+
+ENV DBT_PROFILES_DIR=/usr/app/profiles
+
+WORKDIR /usr
+
+COPY  . .
+
+COPY profiles /usr/app/profiles
+
+RUN pip install --upgrade pip 
+RUN pip install dbt-duckdb 
+RUN dbt deps 
+```
+Docker commands:
 
 `cd dbt_petroleum_analytics`
 
 `docker build -t novi .`
 
+<img src="resources/docker_build.png" width="700" />
+
 `docker run --env-file .env novi  dbt run --profiles-dir /usr/app/profiles`
 
-
-# dbt run 
-
-Executing all 26 models.
-<img src="resources/dbt_run.png" width="700" />
+<img src="resources/docker_run.png" width="700" />
 
 # Data outputs
 
@@ -368,7 +398,10 @@ In the metric store a decision was made to
 
 - Add documentation
 - Add testing
-- Incorporate additional data
+- Integrate additional data
+- Incorporate into Airflow DAG
+- Build and execute Terraform script
+
 
 # Resources used:
 [Data Engineering with dbt: Roberto Zagni](https://a.co/d/0gcuX40)
@@ -376,3 +409,10 @@ In the metric store a decision was made to
 [Containerizing dbt code with Docker for Streamlined Data Transformation: Aparna S](https://medium.com/@aparna_satheesh/containerizing-dbt-code-with-docker-for-streamlined-data-transformation-ce98b7880a10)
 
 [dbt-duckdb Docs](https://github.com/duckdb/dbt-duckdb)
+
+
+# other links
+
+Checkout my Data Engineer Capstone Project [here](https://github.com/ANelson82/de_zoomcamp_2022_earthquake_capstone)
+
+My [LinkedIN](https://www.linkedin.com/in/andynelson1982/)
