@@ -135,9 +135,9 @@ qualify row_number() over (partition by api10_hkey order by load_ts_utc desc) = 
 ```
 
 # Star Schema
-Star schema is where we take business concepts of dimensions (ex. operators) and integrate multiple data sources into the them.  The benefits of this is that the rules applied get applied to all data no matter where it comes from.
+Star schema is where we take business concepts of dimensions (ex. operators) and integrate multiple data sources into the them.  The benefits of this is that the rules get applied to all data no matter where it comes from.
 The also has the benefits of expanding analysis across other domains.
-Because this example has a single source, it's a bit boring for now.
+Because this example has a single source, it's a bit simple at present.
 Furthermore we apply transformations at this layer, making sure we clean the dimension for all downstream use cases.
 
 [dim_operators.sql](dbt_petroleum_analytics/models/star/dim_operators.sql)
