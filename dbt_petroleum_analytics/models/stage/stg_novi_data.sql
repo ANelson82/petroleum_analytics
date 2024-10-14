@@ -27,4 +27,7 @@ from {{ ref('raw_data')}} )
     from src_data
 )
 
-select * from hashed
+select * 
+from hashed
+where api10 is not null 
+qualify row_number() over (partition by api10_hkey order by load_ts_utc desc) = 1

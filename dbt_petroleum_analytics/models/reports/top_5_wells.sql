@@ -1,3 +1,7 @@
+{{ config(
+  post_hook = "copy {{this}} to 's3://petroleum-data/output/top_5_wells.csv'"
+) }}
+
 --The top 5 oil wells by cum12moil, sorted in descending order
 
 select api10

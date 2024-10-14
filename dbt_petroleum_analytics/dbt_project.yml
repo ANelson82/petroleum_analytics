@@ -57,13 +57,13 @@ models:
     preprocessing_rules:
       +schema: preprocessing_rules
       +materialized: table
-      +tags: preprocessing_rules
+      +tags: ['preprocessing_rules', 'rules']
       +docs:
         node_color: GREEN
     postprocessing_rules:
-      +schema: postprocessing_rules
+      +schema: postprocessing_rules 
       +materialized: table
-      +tags: postprocessing_rules
+      +tags: ['postprocessing_rules', 'rules']
       +docs:
         node_color: "#FF4500"
     modeled:
@@ -84,7 +84,7 @@ models:
       +tags: reports
       +docs:
         node_color: PURPLE
-      
+
 snapshots:
   dbt_petroleum_analytics:
     +target_schema: snapshots

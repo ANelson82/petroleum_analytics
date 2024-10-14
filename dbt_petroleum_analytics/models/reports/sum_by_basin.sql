@@ -1,3 +1,7 @@
+{{ config(
+  post_hook = "copy {{this}} to 's3://petroleum-data/output/sum_by_basin.csv'"
+) }}
+
 --The sum of each of cum12moil, cum12mgas and cum12mwater, by basin
 
 select basin_cleansed as basin

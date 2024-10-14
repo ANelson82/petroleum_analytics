@@ -1,1 +1,6 @@
 logs
+resources
+.env
+.user.yml
+Pipfile.lock
+Pipfile

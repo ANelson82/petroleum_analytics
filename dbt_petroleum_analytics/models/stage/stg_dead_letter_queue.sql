@@ -1,3 +1,7 @@
+{{ config(
+  post_hook = "copy {{this}} to 's3://petroleum-data/output/novi_dead_letter_queue.csv'"
+) }}
+
 with src_data as (
 select api10,
        direction,
