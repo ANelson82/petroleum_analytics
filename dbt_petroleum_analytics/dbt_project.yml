@@ -85,7 +85,4 @@ models:
       +docs:
         node_color: PURPLE
 
-snapshots:
-  dbt_petroleum_analytics:
-    +target_schema: snapshots
     
