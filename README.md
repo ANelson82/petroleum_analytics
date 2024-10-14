@@ -175,6 +175,16 @@ This acts as a metric store, where analysts can pick and choose what columns are
 `docker run --env-file .env novi  dbt run --profiles-dir /usr/app/profiles`
 
 
+# Data outputs
+
+[metric_store.csv](resources/output_files/metric_store.csv)
+
+[novi_dead_letter_queue.csv](resources/output_files/novi_dead_letter_queue.csv)
+
+[sum_by_basin.csv](resources/output_files/sum_by_basin.csv)
+
+[top_5_wells.csv](resources/output_files/top_5_wells.csv)
+
 
 # Resources used:
 [Data Engineering with dbt: Roberto Zagni](https://a.co/d/0gcuX40)
