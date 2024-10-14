@@ -1,4 +1,4 @@
---BRING IN DATA
+--BRING IN DIMS AND FACTS
 with dim_locations as (
     select * from {{ ref('dim_locations') }}
 )
@@ -13,31 +13,6 @@ with dim_locations as (
 
 , fct_production_12mo_cums as (
     select * from {{ ref('fct_production_12mo_cums') }}
-)
-
-
-, base_data as (
-    select w.api10
-     , w.direction
-     , w.wellname
-     , w.welltype
-     , w.spuddate
-     , o.operator_name
-     , l.basin
-     , l.subbasin
-     , l.state
-     , l.county
-     , p.cum12moil
-     , p.cum12mgas
-     , p.cum12mwater
-     , p.load_ts_utc as production_load_ts
-from fct_production_12mo_cums p 
-left join dim_wells w
-  on p.well_keyhash = w.well_keyhash
-left join dim_operators o 
-  on p.operator_keyhash = o.operator_keyhash
-left join dim_locations l 
-  on p.location_keyhash = l.location_keyhash
 )
 
 --BRING IN RULES
@@ -91,6 +66,31 @@ left join dim_locations l
 -- operator_name
 -- cum12mgas
 -- cum12mwater
+
+
+, base_data as (
+    select w.api10
+     , w.direction
+     , w.wellname
+     , w.welltype
+     , w.spuddate
+     , o.operator_name
+     , l.basin
+     , l.subbasin
+     , l.state
+     , l.county
+     , p.cum12moil
+     , p.cum12mgas
+     , p.cum12mwater
+     , p.load_ts_utc as production_load_ts
+from fct_production_12mo_cums p 
+left join dim_wells w
+  on p.well_keyhash = w.well_keyhash
+left join dim_operators o 
+  on p.operator_keyhash = o.operator_keyhash
+left join dim_locations l 
+  on p.location_keyhash = l.location_keyhash
+)
 
 
 select api10

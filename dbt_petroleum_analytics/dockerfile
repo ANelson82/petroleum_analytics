@@ -5,16 +5,9 @@ ENV DBT_PROFILES_DIR=/usr/app/profiles
 WORKDIR /usr
 
 COPY  . .
-COPY profiles /usr/app/profiles
 
+COPY profiles /usr/app/profiles
 
 RUN pip install --upgrade pip 
 RUN pip install dbt-duckdb 
-
-# ENTRYPOINT [ "/app/dbt_petroleum_analytics" ]
-
 RUN dbt deps 
-
-# CMD ["dbt", "deps"]
-
-# CMD ["python3", "python_scripts/export_reports.py"]

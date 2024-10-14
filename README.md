@@ -72,7 +72,7 @@ dbt_petroleum_analytics:
   target: prod
 ```
 
-Now a source can be instantiated in the [sources.yml](dbt_petroleum_analytics/models/sources.yml)
+Now a source can be referenced in the [sources.yml](dbt_petroleum_analytics/models/sources.yml)
 
 ```yaml
 sources:
@@ -160,11 +160,180 @@ Rules seperated into two segments:
 
 Rules need to be modular and version controlled!  Customers will likely question methods.
 
+# Preprocessing Rules
+
+Example of preprocessing rule, catching bad data that can be used to create filters or highlight erronus data.
+
+```sql
+select basin as basin_bad_values
+from {{ ref('stg_novi_data') }}
+where regexp_matches(basin, '[0-9]')
+```
+
+# Post Processing Rules
+For rules like "most common basin", we don't want to use the file as context(it could just be a few records).
+
+It's better to use a larger context dataset to compute these metrics. 
+
+[rules_basin_mostcommon.sql](dbt_petroleum_analytics/models/postprocessing_rules/rules_locations/rules_basin_mostcommon.sql)
+```sql 
+select basin as basin_mostcommon
+from {{ ref('dim_locations') }}
+group by all
+order by count(*) desc
+limit 1
+```
+
 # Modeled Schema
 This is the OBT(One Big Table).  The grain must be consistent and all associated data is built in.
 This acts as a metric store, where analysts can pick and choose what columns are needed for their reports.
 
+```sql 
+--BRING IN DIMS AND FACTS
+with dim_locations as (
+    select * from {{ ref('dim_locations') }}
+)
 
+, dim_operators as (
+    select * from {{ ref('dim_operators') }}
+)
+
+, dim_wells as (
+    select * from {{ ref('dim_wells') }}
+)
+
+, fct_production_12mo_cums as (
+    select * from {{ ref('fct_production_12mo_cums') }}
+)
+
+
+--BRING IN RULES
+
+, rules_direction_mostcommon as (
+    select * from {{ ref('rules_direction_mostcommon')}}
+)
+
+, rules_basin_mostcommon as (
+    select * from {{ ref('rules_basin_mostcommon')}}
+)
+
+, rules_subbasin_mostcommon as (
+    select * from {{ ref('rules_subbasin_mostcommon')}}
+)
+
+, rules_welltype_mostcommon as (
+    select * from {{ ref('rules_welltype_mostcommon')}}
+)
+
+, rules_state_mostcommon as (
+    select * from {{ ref('rules_state_mostcommon')}}
+)
+
+, rules_county_mostcommon as (
+    select * from {{ ref('rules_county_mostcommon')}}
+)
+
+, rules_operator_name_mostcommon as (
+    select * from {{ ref('rules_operator_name_mostcommon')}}
+)
+
+, rules_cum12mgas_avg as (
+    select * from {{ ref('rules_cum12mgas_avg')}}
+)
+
+, rules_cum12moil_avg as (
+    select * from {{ ref('rules_cum12moil_avg')}}
+)
+
+, rules_cum12mwater_avg as (
+    select * from {{ ref('rules_cum12mwater_avg')}}
+)
+
+, rules_spuddate_avg as (
+    select * from {{ ref('rules_spuddate_avg')}}
+)
+
+--records with nulls:
+-- welltype
+-- operator_name
+-- cum12mgas
+-- cum12mwater
+
+
+, base_data as (
+    select w.api10
+     , w.direction
+     , w.wellname
+     , w.welltype
+     , w.spuddate
+     , o.operator_name
+     , l.basin
+     , l.subbasin
+     , l.state
+     , l.county
+     , p.cum12moil
+     , p.cum12mgas
+     , p.cum12mwater
+     , p.load_ts_utc as production_load_ts
+from fct_production_12mo_cums p 
+left join dim_wells w
+  on p.well_keyhash = w.well_keyhash
+left join dim_operators o 
+  on p.operator_keyhash = o.operator_keyhash
+left join dim_locations l 
+  on p.location_keyhash = l.location_keyhash
+)
+
+
+select api10
+     , direction
+     , coalesce(direction, (select * from rules_direction_mostcommon)) as direction_cleansed
+     , wellname
+     , welltype
+     , coalesce(welltype, (select * from rules_welltype_mostcommon)) as welltype_cleansed
+     , spuddate
+     , coalesce(spuddate, (select * from rules_spuddate_avg)) as spuddate_cleansed
+     , operator_name
+     , coalesce(operator_name, (select * from rules_operator_name_mostcommon)) as operator_name_cleansed
+     , basin
+     , coalesce(basin, (select * from rules_basin_mostcommon)) as basin_cleansed
+     , subbasin
+     , coalesce(subbasin, (select * from rules_subbasin_mostcommon)) as subbasin_cleansed
+     , state
+     , coalesce(state, (select * from rules_state_mostcommon)) as state_cleansed
+     , county
+     , coalesce(county, (select * from rules_county_mostcommon)) as county_cleansed
+     , cum12moil
+     , coalesce(cum12moil, (select * from rules_cum12moil_avg)) as cum12moil_cleansed
+     , cum12mgas
+     , coalesce(cum12mgas, (select * from rules_cum12mgas_avg)) as cum12mgas_cleansed
+     , cum12mwater
+     , coalesce(cum12mwater, (select * from rules_cum12mwater_avg)) as cum12mwater_cleansed
+     , production_load_ts
+from base_data
+order by api10
+```
+
+# Reports
+This is the final reporting layer that serves the final 2 reports.
+
+A post hook is called to send the result set to the s3 bucket.
+
+```sql
+{{ config(
+  post_hook = "copy {{this}} to 's3://petroleum-data/output/sum_by_basin.csv'"
+) }}
+
+--The sum of each of cum12moil, cum12mgas and cum12mwater, by basin
+
+select basin_cleansed as basin
+     , sum(cum12moil_cleansed)   as sum_cum12moil
+     , sum(cum12mgas_cleansed)   as sum_cum12mgas
+     , sum(cum12mwater_cleansed) as sum_cum12mwater
+from {{ ref('production_12mo_cums_cleansed') }}
+group by basin_cleansed
+order by 2 desc, 3 desc, 4 desc
+```
 
 # bash commands:
 
@@ -175,7 +344,15 @@ This acts as a metric store, where analysts can pick and choose what columns are
 `docker run --env-file .env novi  dbt run --profiles-dir /usr/app/profiles`
 
 
+# dbt run 
+
+Executing all 26 models.
+<img src="resources/dbt_run.png" width="700" />
+
 # Data outputs
+
+<img src="resources/s3_bucket.png" width="700" />
+
 
 [metric_store.csv](resources/output_files/metric_store.csv)
 
@@ -185,9 +362,17 @@ This acts as a metric store, where analysts can pick and choose what columns are
 
 [top_5_wells.csv](resources/output_files/top_5_wells.csv)
 
+In the metric store a decision was made to 
+
+# Future Work
+
+- Add documentation
+- Add testing
+- Incorporate additional data
 
 # Resources used:
 [Data Engineering with dbt: Roberto Zagni](https://a.co/d/0gcuX40)
 
 [Containerizing dbt code with Docker for Streamlined Data Transformation: Aparna S](https://medium.com/@aparna_satheesh/containerizing-dbt-code-with-docker-for-streamlined-data-transformation-ce98b7880a10)
 
+[dbt-duckdb Docs](https://github.com/duckdb/dbt-duckdb)
